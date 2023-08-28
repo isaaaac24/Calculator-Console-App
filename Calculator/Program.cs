@@ -1,4 +1,7 @@
-﻿class Operation
+﻿using MySql.Data.MySqlClient;
+using Newtonsoft.Json.Linq;
+
+class Operation
 {
     //Declaring elements of object
     public double operand1;
@@ -70,8 +73,29 @@ class Calculator
 }
 class Program
 {
+    public static MySqlConnection GetMySqlConnection()
+    {
+        string connectionString = Environment.GetEnvironmentVariable("ConnectionString");
+        MySqlConnection conn = new MySqlConnection(connectionString);
+        return conn;
+    }
     static void Main(string[] args)
     {
+        try
+        {
+            
+            using (MySqlConnection conn = GetMySqlConnection())
+            {
+                conn.Open();  // Opens the connection
+                Console.WriteLine("Connection Opened");
+                conn.Close(); // Closes the connection
+                Console.WriteLine("Connection Closed");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
         // Declare history list and endApp boolean
         List<Operation> operationHistory = new List<Operation>();
         bool endApp = false;
@@ -200,7 +224,28 @@ class Program
         {
             Console.WriteLine("Oh no! An exception occurred trying to do the math.\n - Details: " + e.Message);
         }
+        InsertOperationHistory(operation);
         return operation;
+    }
+
+    public static void InsertOperationHistory(Operation operation)
+    {
+        string query = "INSERT INTO operationhistory (Operand1, Operand2, OperationSymbol, Result) VALUES (@Operand1, @Operand2, @OperationSymbol, @Result)";
+
+        using (MySqlConnection conn = GetMySqlConnection())
+        {
+            using (MySqlCommand cmd = new MySqlCommand(query, conn))
+            {
+                cmd.Parameters.AddWithValue("@Operand1", operation.operand1);
+                cmd.Parameters.AddWithValue("@Operand2", operation.operand2);
+                cmd.Parameters.AddWithValue("@OperationSymbol", operation.operationsymbol);
+                cmd.Parameters.AddWithValue("@Result", operation.result);
+
+                conn.Open();
+                cmd.ExecuteNonQuery();
+                conn.Close();
+            }
+        }
     }
 
     // Print operation history
