@@ -228,7 +228,7 @@ class Program
 
     public static void InsertOperationHistory(Operation operation)
     {
-        string query = "INSERT INTO operationhistory (Operand1, Operand2, OperationLetter, OperationSymbol, Result) VALUES (@Operand1, @Operand2, @OperationLetter, @OperationSymbol, @Result)";
+        string query = "INSERT INTO operationhistory (Operand1, Operand2, OperationLetter, Result) VALUES (@Operand1, @Operand2, @OperationLetter, @Result)";
 
         using (MySqlConnection conn = GetMySqlConnection())
         {
@@ -237,7 +237,6 @@ class Program
                 cmd.Parameters.AddWithValue("@Operand1", operation.operand1);
                 cmd.Parameters.AddWithValue("@Operand2", operation.operand2);
                 cmd.Parameters.AddWithValue("@OperationLetter", operation.operationLetter);
-                cmd.Parameters.AddWithValue("@OperationSymbol", operation.operationSymbol);
                 cmd.Parameters.AddWithValue("@Result", operation.result);
 
                 conn.Open();
@@ -261,7 +260,7 @@ class Program
 
     public static List<Operation> GetAllOperations(List<Operation> operations)
     {
-        string query = "SELECT Operand1, Operand2, OperationLetter, OperationSymbol, Result FROM operationhistory";
+        string query = "SELECT Operand1, Operand2, OperationLetter, Result FROM operationhistory";
 
         using (MySqlConnection conn = GetMySqlConnection())
         {
@@ -275,7 +274,6 @@ class Program
                         double operand1 = Convert.ToDouble(reader["Operand1"]);
                         double operand2 = Convert.ToDouble(reader["Operand2"]);
                         string operationLetter = reader["OperationLetter"].ToString();
-                        string operationSymbol = reader["OperationSymbol"].ToString();
                         double result = Convert.ToDouble(reader["Result"]);
 
                         Operation operation = new Operation(operand1, operand2, operationLetter);
