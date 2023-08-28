@@ -81,23 +81,24 @@ class Program
     }
     static void Main(string[] args)
     {
+        // Declare endApp boolean
+        bool endApp = false;
+
+        // Connect to MySQL database. If unsuccessful, print error message and exit
         try
         {
-            
             using (MySqlConnection conn = GetMySqlConnection())
             {
                 conn.Open();  // Opens the connection
-                Console.WriteLine("Connection Opened");
                 conn.Close(); // Closes the connection
-                Console.WriteLine("Connection Closed");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
+            Console.WriteLine("Unable to connect to database. Please check credentials");
+            endApp = true;
         }
-        // Declare endApp boolean
-        bool endApp = false;
+
 
         // Display title as the C# console calculator app.
         Console.WriteLine("Console Calculator in C#\r");
