@@ -7,7 +7,7 @@ class Operation
     public double operand1;
     public double operand2;
     public string operationLetter;
-    public string operationsymbol;
+    public string operationSymbol;
     public double result;
 
     // Constructor
@@ -16,22 +16,22 @@ class Operation
         this.operand1 = operand1;
         this.operand2 = operand2;
         this.operationLetter = operationLetter;
-        this.operationsymbol = "";
+        this.operationSymbol = "";
         this.result = 0;
 
         switch (operationLetter)
         {
             case "a":
-                this.operationsymbol = "+";
+                this.operationSymbol = "+";
                 break;
             case "s":
-                this.operationsymbol = "-";
+                this.operationSymbol = "-";
                 break;
             case "m":
-                this.operationsymbol = "*";
+                this.operationSymbol = "*";
                 break;
             case "d":
-                this.operationsymbol = "/";
+                this.operationSymbol = "/";
                 break;
             default:
                 break;
@@ -96,8 +96,7 @@ class Program
         {
             Console.WriteLine(ex.Message);
         }
-        // Declare history list and endApp boolean
-        List<Operation> operationHistory = new List<Operation>();
+        // Declare endApp boolean
         bool endApp = false;
 
         // Display title as the C# console calculator app.
@@ -125,8 +124,7 @@ class Program
             Console.WriteLine("------------------------\n");
 
             // Store operation in history and print operation history
-            operationHistory.Add(operation);
-            PrintOperationHistory(operationHistory);
+            PrintOperationHistory();
             Console.WriteLine("\n------------------------\n");
 
             // Ask if user would like to do more calculations.
@@ -230,7 +228,7 @@ class Program
 
     public static void InsertOperationHistory(Operation operation)
     {
-        string query = "INSERT INTO operationhistory (Operand1, Operand2, OperationSymbol, Result) VALUES (@Operand1, @Operand2, @OperationSymbol, @Result)";
+        string query = "INSERT INTO operationhistory (Operand1, Operand2, OperationLetter, OperationSymbol, Result) VALUES (@Operand1, @Operand2, @OperationLetter, @OperationSymbol, @Result)";
 
         using (MySqlConnection conn = GetMySqlConnection())
         {
@@ -238,7 +236,8 @@ class Program
             {
                 cmd.Parameters.AddWithValue("@Operand1", operation.operand1);
                 cmd.Parameters.AddWithValue("@Operand2", operation.operand2);
-                cmd.Parameters.AddWithValue("@OperationSymbol", operation.operationsymbol);
+                cmd.Parameters.AddWithValue("@OperationLetter", operation.operationLetter);
+                cmd.Parameters.AddWithValue("@OperationSymbol", operation.operationSymbol);
                 cmd.Parameters.AddWithValue("@Result", operation.result);
 
                 conn.Open();
@@ -249,12 +248,44 @@ class Program
     }
 
     // Print operation history
-    static public void PrintOperationHistory(List<Operation> operationHistory)
+    static public void PrintOperationHistory()
     {
+        List<Operation> operations = new List<Operation>();
+        operations = GetAllOperations(operations);
         Console.WriteLine("Operation History:");
-        foreach (Operation operation in operationHistory)
+        foreach (Operation operation in operations)
         {
-            Console.WriteLine("{0} {1} {2} = {3}", operation.operand1, operation.operationsymbol, operation.operand2, operation.result);
+            Console.WriteLine("{0} {1} {2} = {3}", operation.operand1, operation.operationSymbol, operation.operand2, operation.result);
         }
+    }
+
+    public static List<Operation> GetAllOperations(List<Operation> operations)
+    {
+        string query = "SELECT Operand1, Operand2, OperationLetter, OperationSymbol, Result FROM operationhistory";
+
+        using (MySqlConnection conn = GetMySqlConnection())
+        {
+            using (MySqlCommand cmd = new MySqlCommand(query, conn))
+            {
+                conn.Open();
+                using (MySqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        double operand1 = Convert.ToDouble(reader["Operand1"]);
+                        double operand2 = Convert.ToDouble(reader["Operand2"]);
+                        string operationLetter = reader["OperationLetter"].ToString();
+                        string operationSymbol = reader["OperationSymbol"].ToString();
+                        double result = Convert.ToDouble(reader["Result"]);
+
+                        Operation operation = new Operation(operand1, operand2, operationLetter);
+                        operation.result = result;
+                        operations.Add(operation);
+                    }
+                }
+                conn.Close();
+            }
+        }
+        return operations;
     }
 }
